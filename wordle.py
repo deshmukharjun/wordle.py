@@ -20,11 +20,12 @@ B_MARGIN = 100
 LR_MARGIN = 100
 
 # Colors
-WHITE = (255, 255, 255)
-GREY = (70, 70, 80)
+LIGHT_MODE_BG = (255, 255, 255)
+LIGHT_MODE_FG = (70, 70, 80)
+DARK_MODE_BG = (30, 30, 30)
+DARK_MODE_FG = (200, 200, 200)
 GREEN = (6, 214, 160)
 YELLOW = (255, 209, 102)
-RED = (255, 0, 0)
 
 # Placeholders
 INPUT = ""
@@ -32,6 +33,7 @@ GUESSES = []
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 UNGUESSED = ALPHABET
 GAME_OVER = False
+DARK_MODE = False  # Added variable to track dark mode state
 
 def restart_game():
     global INPUT, GUESSES, UNGUESSED, ANSWER, GAME_OVER
@@ -67,7 +69,7 @@ def determine_color(guess, j):
 
         if n_target - n_correct - n_occurrence >= 0:
             return YELLOW
-    return GREY
+    return DARK_MODE_FG if DARK_MODE else LIGHT_MODE_FG
 
 # Create screen
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -108,18 +110,22 @@ while animating:
                 if len(INPUT) < 5:
                     INPUT += chr(event.key).upper()
 
+            # Toggle dark mode when Shift key is pressed
+            elif event.key == pygame.K_SPACE:
+                DARK_MODE = not DARK_MODE
+
     # Drawing board
-    screen.fill(WHITE)
-    letters = FONT_SMALL.render(UNGUESSED, False, GREY)
+    screen.fill(DARK_MODE_BG if DARK_MODE else LIGHT_MODE_BG)
+    letters = FONT_SMALL.render(UNGUESSED, False, DARK_MODE_FG if DARK_MODE else LIGHT_MODE_FG)
     surface = letters.get_rect(center=(WIDTH // 2, T_MARGIN // 2))
     screen.blit(letters, surface)
-
+    
     y = T_MARGIN
     for i in range(6):
         x = LR_MARGIN
         for j in range(5):
             square = pygame.Rect(x, y, SQ_SIZE, SQ_SIZE)
-            pygame.draw.rect(screen, GREY, square, width=2, border_radius=15)
+            pygame.draw.rect(screen, DARK_MODE_FG if DARK_MODE else LIGHT_MODE_FG, square, width=2, border_radius=15)
 
             if i < len(GUESSES) and j < len(GUESSES[i]):
                 color = determine_color(GUESSES[i], j)
@@ -130,7 +136,7 @@ while animating:
 
             # user text input (next guess)
             if i == len(GUESSES) and j < len(INPUT):
-                letter = FONT.render(INPUT[j], False, GREY)
+                letter = FONT.render(INPUT[j], False, DARK_MODE_FG if DARK_MODE else LIGHT_MODE_FG)
                 surface = letter.get_rect(center=(x + SQ_SIZE // 2, y + SQ_SIZE // 2))
                 screen.blit(letter, surface)
 
@@ -139,7 +145,7 @@ while animating:
 
     # If game over, display answer
     if GAME_OVER:
-        answer_text = FONT.render(ANSWER, True, GREY)
+        answer_text = FONT.render(ANSWER, True, DARK_MODE_FG if DARK_MODE else LIGHT_MODE_FG)
         screen.blit(answer_text, (WIDTH//2.8, (HEIGHT - B_MARGIN)+20))
         pygame.display.flip()
         pygame.time.wait(2000)
