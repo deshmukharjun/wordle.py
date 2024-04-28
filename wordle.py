@@ -33,7 +33,7 @@ GUESSES = []
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 UNGUESSED = ALPHABET
 GAME_OVER = False
-DARK_MODE = False  # Added variable to track dark mode state
+DARK_MODE = False
 
 def restart_game():
     global INPUT, GUESSES, UNGUESSED, ANSWER, GAME_OVER
@@ -114,12 +114,16 @@ while animating:
             elif event.key == pygame.K_SPACE:
                 DARK_MODE = not DARK_MODE
 
+            # Restart game when Ctrl key is pressed
+            elif event.key == pygame.K_LCTRL or event.key == pygame.K_RCTRL:
+                restart_game()
+
     # Drawing board
     screen.fill(DARK_MODE_BG if DARK_MODE else LIGHT_MODE_BG)
     letters = FONT_SMALL.render(UNGUESSED, False, DARK_MODE_FG if DARK_MODE else LIGHT_MODE_FG)
     surface = letters.get_rect(center=(WIDTH // 2, T_MARGIN // 2))
     screen.blit(letters, surface)
-    
+
     y = T_MARGIN
     for i in range(6):
         x = LR_MARGIN
@@ -143,13 +147,21 @@ while animating:
             x += SQ_SIZE + MARGIN
         y += SQ_SIZE + MARGIN
 
-    # If game over, display answer
-    if GAME_OVER:
+    # Check if user lost
+    if len(GUESSES) >= 6 and not any(guess == ANSWER for guess in GUESSES):
+        screen.fill(DARK_MODE_BG if DARK_MODE else LIGHT_MODE_BG)
+        lost_text = FONT_SMALL.render("You lost :(  Press Ctrl to restart.", True, DARK_MODE_FG if DARK_MODE else LIGHT_MODE_FG)
+        screen.blit(lost_text, (LR_MARGIN, HEIGHT // 2))
         answer_text = FONT.render(ANSWER, True, DARK_MODE_FG if DARK_MODE else LIGHT_MODE_FG)
-        screen.blit(answer_text, (WIDTH//2.8, (HEIGHT - B_MARGIN)+20))
-        pygame.display.flip()
-        pygame.time.wait(2000)
-        restart_game()
+        screen.blit(answer_text, (LR_MARGIN, HEIGHT // 2 + 30))
+
+    # Check if user guessed the correct answer
+    elif INPUT == ANSWER:
+        screen.fill(DARK_MODE_BG if DARK_MODE else LIGHT_MODE_BG)
+        win_text = FONT_SMALL.render("You got it :)  Press Ctrl to restart.", True, DARK_MODE_FG if DARK_MODE else LIGHT_MODE_FG)
+        screen.blit(win_text, (LR_MARGIN, HEIGHT // 2))
+        answer_text = FONT.render(ANSWER, True, DARK_MODE_FG if DARK_MODE else LIGHT_MODE_FG)
+        screen.blit(answer_text, (LR_MARGIN, HEIGHT // 2 + 30))
 
     # Update screen
     pygame.display.flip()
